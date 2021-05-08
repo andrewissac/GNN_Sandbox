@@ -1,0 +1,12 @@
+*.pyc
+*.gif
+*.png
+*.jpg
+*.jpeg
+*.dgl
+*.bin
+*.pkl
+*.json
+/.ipynb_checkpoints
+/__pycache__
+/GraphDatasets
