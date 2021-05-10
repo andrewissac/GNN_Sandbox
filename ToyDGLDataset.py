@@ -292,3 +292,16 @@ class ToyDGLDataset(DGLDataset):
             outputFilePath = path.join(outputPath, filename)
             plt.savefig(outputFilePath)
             plt.clf()
+
+
+def GetNodeFeatureVec(graph):
+    return _getFeatureVec(graph.ndata.values())
+
+def GetEdgeFeatureVec(graph):
+    return _getFeatureVec(graph.edata.values())
+
+def _getFeatureVec(data):
+    feat = tuple([x.data for x in data])
+    feat = torch.dstack(feat).squeeze()
+    feat = feat.float()
+    return feat
