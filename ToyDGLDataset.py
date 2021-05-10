@@ -75,8 +75,10 @@ class ToyDGLDataset(DGLDataset):
                 nodeFeatures = {}
 
                 # generate nodefeature numpy arrays from distribution information
+                nodeFeatures['label'] = np.arange(nodeCount)
                 for key in graphInfo.NodeFeatures.keys():
                     nodeFeatures[key] = graphInfo.NodeFeatures[key].ToNumpy(nodeCount)
+                nodeAttrKeys = nodeFeatures.keys()
 
                 # convert from dict of list to list dicts (needed to add node tuples (label, featureDict) to graph)
                 nodeFeatures = self._dictOfListsToListOfDicts(nodeFeatures)
@@ -106,7 +108,7 @@ class ToyDGLDataset(DGLDataset):
 
                 g.add_edges_from(edges)
                 g = dgl.from_networkx(g, 
-                                    node_attrs=graphInfo.NodeFeatures.keys(), 
+                                    node_attrs=nodeAttrKeys, 
                                     edge_attrs=graphInfo.EdgeFeatures.keys())
                 self.graphs.append(g)
                 self.labels.append(graphInfo.Label)
@@ -294,10 +296,16 @@ class ToyDGLDataset(DGLDataset):
             plt.clf()
 
 
-def GetNodeFeatureVec(graph):
-    return _getFeatureVec(graph.ndata.values())
+def GetNodeFeatureVectors(graph):
+    #print(graph.ndata.values())
+    feat = []
+    for key, val in graph.ndata.items():
+        if key != 'label':
+            feat.append(val)
+    #print(feat)
+    return _getFeatureVec(feat)
 
-def GetEdgeFeatureVec(graph):
+def GetEdgeFeatureVectors(graph):
     return _getFeatureVec(graph.edata.values())
 
 def _getFeatureVec(data):
@@ -305,3 +313,38 @@ def _getFeatureVec(data):
     feat = torch.dstack(feat).squeeze()
     feat = feat.float()
     return feat
+
+def GetNeighborNodes(graph, sourceNodeLabel: int):
+    """
+    returns tensor of [srcNodeID, dstNodeId]
+    e.g.:
+    neighborhood = GetNeighborNodes(graph, sourceNodeLabel=7)
+    print(neighborhood)
+    tensor([[ 7,  0],
+        [ 7,  1],
+        [ 7,  2],
+        [ 7,  3],
+        [ 7,  4],
+        [ 7,  5],
+        [ 7,  6],
+        [ 7,  8],
+        [ 7,  9],
+        [ 7, 10],
+        [ 7, 11],
+        [ 7, 12],
+        [ 7, 13],
+        [ 7, 14]])
+    """
+    # if sourceNodeLabel > graph.num_nodes() - 1:
+    #     raise Exception(f'Specified source node label exceeds the number of available nodes in the graph.')
+    # edgeListWholeGraph = GetEdgeList(graph)
+    # u, v = edgeListWholeGraph
+    # indices = (u == sourceNodeLabel).nonzero(as_tuple=True)[0]
+    # neighbors = torch.dstack(edgeListWholeGraph).squeeze()[indices]
+    return graph.out_edges(sourceNodeLabel)
+
+def GetEdgeList(graph):
+    """
+    returns a tuple(tensor(srcNodeID), tensor(dstNodeId)) of the whole graph
+    """
+    return graph.edges(form='uv', order='srcdst')

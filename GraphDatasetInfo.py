@@ -19,9 +19,9 @@ class Split(FloatEnumBase):
 
 class Distribution(JsonSerializable, PPrintable):
     def __init__(
-        self, mininum: float, maximum: float, distributionType: DistributionType, 
+        self, minimum: float, maximum: float, distributionType: DistributionType, 
         mean: float=None, standardDeviation: float=None, roundToNearestInt: bool=False):
-        self.Min = mininum
+        self.Min = minimum
         self.Max = maximum
         self.DistributionType = distributionType
         self.RoundToNearestInt = roundToNearestInt
