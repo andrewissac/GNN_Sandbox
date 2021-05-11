@@ -106,12 +106,14 @@ class ToyDGLDataset(DGLDataset):
                 for j in range(nodeCount):
                     for k in range(nodeCount):
                         if not j == k: # no self-loops
+                            # add src/dst node ids
                             src_ids.append(j)
                             dst_ids.append(k)
 
-                            # add edge features
-                            edgeFeatures.append((deltaPhi[j][k], deltaEta[j][k], rapiditySquared[j][k]))
+                            # add edge features (care, order should be the same as in eFeatMapping!)
+                            edgeFeatures.append((deltaEta[j][k], deltaPhi[j][k], rapiditySquared[j][k]))
 
+                # build graph based on src/dst node ids
                 g = dgl.graph((src_ids, dst_ids))
                 # dstack -> each entry is now a node feature vec containing [P_t, Eta, Phi,...]
                 nodeFeatures = np.dstack(nodeFeatures).squeeze()
@@ -265,11 +267,6 @@ class ToyDGLDataset(DGLDataset):
         """
         if self.num_graphs <= 0:
             raise Exception('There are no graphs in the dataset.')
-        # feat = self._getFeatureByKey(self.graphs[0], key)
-        # for i in range(1, self.num_graphs):
-        #     if self.labels[i] == graphLabel:
-        #         data = self._getFeatureByKey(self.graphs[i], key)
-        #         feat = torch.cat((feat, data))
         feat = self._getFeatureByKey(self.graphs[0], key)
         for i in range(1, self.num_graphs):
             if self.labels[i] == graphLabel:
