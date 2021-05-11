@@ -63,55 +63,63 @@ class ToyDGLDataset(DGLDataset):
         # process raw data to graphs, labels, splitting masks
         self.graphs = []
         self.labels = []
+        nFeatMapping = self.info.nodeFeatMapping
+        phi = nFeatMapping['Phi']
+        eta = nFeatMapping['Eta']
+
+        def calcAbsDiff(vec):
+            """
+            To calculate deltaPhi, deltaEta, rapiditysquared efficiently the following is done:
+            Take input array with Phi values of all nodes, create matrix by repeating the column vector
+            Get second matrix as the transposed first matrix
+            Substract both and take the absolute.
+            """
+            dim = len(vec)
+            matB = np.expand_dims(vec, axis=1)
+            matB = np.repeat(matB, dim, axis=1)
+            matA = np.transpose(matB)
+            return np.absolute(matA - matB)
 
         # generate graphs from GraphDatasetInfo
         it = 1
-        for graphInfo in self.info.SubDatasetInfoList:
-            nodeCounts = graphInfo.NodesPerGraph.ToNumpy(graphInfo.GraphCount)
+        for graphInfo in self.info.subDatasetInfoList:
+            nodeCounts = graphInfo.nodesPerGraph.ToNumpy(graphInfo.graphCount)
 
-            for i in tqdm(range(graphInfo.GraphCount), 
-            desc=f'({it}/{len(self.info.SubDatasetInfoList)}) Generating graphs from SubDataset {graphInfo.Name}'):
+            for i in tqdm(range(graphInfo.graphCount), 
+            desc=f'({it}/{len(self.info.subDatasetInfoList)}) Generating graphs from SubDataset {graphInfo.name}'):
                 nodeCount = int(nodeCounts[i])
-                nodeFeatures = {}
+                nodeFeatures = []
 
                 # generate nodefeature numpy arrays from distribution information
-                nodeFeatures['label'] = np.arange(nodeCount)
-                for key in graphInfo.NodeFeatures.keys():
-                    nodeFeatures[key] = graphInfo.NodeFeatures[key].ToNumpy(nodeCount)
-                nodeAttrKeys = nodeFeatures.keys()
+                for feat in graphInfo.nodeFeat:
+                    nodeFeatures.append(feat.ToNumpy(nodeCount))
+                
+                # calculate edge features efficiently through matrices
+                deltaPhi = calcAbsDiff(nodeFeatures[phi])
+                deltaEta = calcAbsDiff(nodeFeatures[eta])
+                rapiditySquared = deltaPhi * deltaPhi + deltaEta * deltaEta
 
-                # convert from dict of list to list dicts (needed to add node tuples (label, featureDict) to graph)
-                nodeFeatures = self._dictOfListsToListOfDicts(nodeFeatures)
-                nodes = []
-
-                # Add nodes with node-label j and nodeFeatures
-                for j in range(nodeCount):
-                    nodes.append((j, nodeFeatures[j]))
-                g = nx.DiGraph()
-                g.add_nodes_from(nodes)
-
-                # Add edges with edge features, this example: fully connected.
-                edges = []
+                src_ids = []
+                dst_ids = []
+                edgeFeatures = []
+                edgeFeaturesFromMatCalc = []
                 for j in range(nodeCount):
                     for k in range(nodeCount):
                         if not j == k: # no self-loops
-                            deltaPhi = abs(g.nodes[j]['Phi'] - g.nodes[k]['Phi'])
-                            deltaEta = abs(g.nodes[j]['Eta'] - g.nodes[k]['Eta'])
-                            rapiditySquared = deltaEta * deltaEta + deltaPhi * deltaPhi
-                            # possibly have a threshold here to reduce number of edges
-                            edgeFeatures = {
-                                'DeltaPhi': deltaPhi, 
-                                'DeltaEta': deltaEta, 
-                                'RapiditySquared': rapiditySquared
-                            }
-                            edges.append((j, k, edgeFeatures))
+                            src_ids.append(j)
+                            dst_ids.append(k)
 
-                g.add_edges_from(edges)
-                g = dgl.from_networkx(g, 
-                                    node_attrs=nodeAttrKeys, 
-                                    edge_attrs=graphInfo.EdgeFeatures.keys())
+                            # add edge features
+                            edgeFeatures.append((deltaPhi[j][k], deltaEta[j][k], rapiditySquared[j][k]))
+
+                g = dgl.graph((src_ids, dst_ids))
+                # dstack -> each entry is now a node feature vec containing [P_t, Eta, Phi,...]
+                nodeFeatures = np.dstack(nodeFeatures).squeeze()
+                g.ndata['feat'] = torch.from_numpy(nodeFeatures)
+                g.edata['feat'] = torch.tensor(edgeFeatures)
+                
                 self.graphs.append(g)
-                self.labels.append(graphInfo.Label)
+                self.labels.append(graphInfo.label)
             it += 1
 
         # shuffle dataset
@@ -135,14 +143,6 @@ class ToyDGLDataset(DGLDataset):
 
     def __len__(self):
         return len(self.graphs)
-
-    def _dictOfListsToListOfDicts(self, DL):
-        """
-        DL = {'a': [0, 1], 'b': [2, 3]}
-        to
-        LD = [{'a': 0, 'b': 2}, {'a': 1, 'b': 3}]
-        """
-        return [dict(zip(DL, t)) for t in zip(*DL.values())]
 
     def save(self):
         # save graphs and labels
@@ -184,15 +184,15 @@ class ToyDGLDataset(DGLDataset):
     
     @property
     def num_graph_classes(self):
-        return len(self.info.SubDatasetInfoList)
+        return len(self.info.subDatasetInfoList)
 
     @property
     def graphClasses(self):
-        return self.info.GraphClasses
+        return self.info.graphClasses
     
     @property
     def num_graphs(self):
-        return self.info.TotalGraphCount
+        return self.info.totalGraphCount
     
     @property
     def num_all_nodes(self):
@@ -204,11 +204,11 @@ class ToyDGLDataset(DGLDataset):
 
     @property
     def nodeFeatKeys(self):
-        return list(self.info.SubDatasetInfoList[0].NodeFeatures.keys())
+        return list(self.info.nodeFeatMapping.keys())
 
     @property
     def edgeFeatKeys(self):
-        return list(self.info.SubDatasetInfoList[0].EdgeFeatures.keys())
+        return list(self.info.edgeFeatMapping.keys())
 
     @property
     def nodeAndEdgeFeatKeys(self):
@@ -227,12 +227,12 @@ class ToyDGLDataset(DGLDataset):
         return self.dim_nfeats + self.dim_efeats
     
     def get_split_indices(self):
-        train_split_idx = int(self.info.TotalGraphCount * self.info.SplitPercentages['train'])
-        valid_split_idx = train_split_idx + int(self.info.TotalGraphCount * self.info.SplitPercentages['valid'])
+        train_split_idx = int(self.info.totalGraphCount * self.info.splitPercentages['train'])
+        valid_split_idx = train_split_idx + int(self.info.totalGraphCount * self.info.splitPercentages['valid'])
         return {
             'train': torch.arange(train_split_idx),
             'valid': torch.arange(train_split_idx, valid_split_idx),
-            'test': torch.arange(valid_split_idx, self.info.TotalGraphCount)
+            'test': torch.arange(valid_split_idx, self.info.totalGraphCount)
         }
     
     def download(self):
@@ -251,10 +251,10 @@ class ToyDGLDataset(DGLDataset):
         print(f'Edge feature keys: {self.edgeFeatKeys}')
 
     def _getFeatureByKey(self, g, key):
-        if(key in g.ndata.keys()):
-            return g.ndata[key]
-        elif(key in g.edata.keys()):
-            return g.edata[key]
+        if(key in self.info.nodeFeatMapping):
+            return g.ndata['feat'][:,self.info.nodeFeatMapping[key]]
+        elif(key in self.info.edgeFeatMapping):
+            return g.edata['feat'][:,self.info.edgeFeatMapping[key]]
         else:
             raise KeyError(f'Key {key} not found in node or edge data.')
 
@@ -265,6 +265,11 @@ class ToyDGLDataset(DGLDataset):
         """
         if self.num_graphs <= 0:
             raise Exception('There are no graphs in the dataset.')
+        # feat = self._getFeatureByKey(self.graphs[0], key)
+        # for i in range(1, self.num_graphs):
+        #     if self.labels[i] == graphLabel:
+        #         data = self._getFeatureByKey(self.graphs[i], key)
+        #         feat = torch.cat((feat, data))
         feat = self._getFeatureByKey(self.graphs[0], key)
         for i in range(1, self.num_graphs):
             if self.labels[i] == graphLabel:
