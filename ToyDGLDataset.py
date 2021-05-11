@@ -102,7 +102,6 @@ class ToyDGLDataset(DGLDataset):
                 src_ids = []
                 dst_ids = []
                 edgeFeatures = []
-                edgeFeaturesFromMatCalc = []
                 for j in range(nodeCount):
                     for k in range(nodeCount):
                         if not j == k: # no self-loops
@@ -111,7 +110,7 @@ class ToyDGLDataset(DGLDataset):
                             dst_ids.append(k)
 
                             # add edge features (care, order should be the same as in eFeatMapping!)
-                            edgeFeatures.append((deltaEta[j][k], deltaPhi[j][k], rapiditySquared[j][k]))
+                            edgeFeatures.append([deltaEta[j][k], deltaPhi[j][k], rapiditySquared[j][k]])
 
                 # build graph based on src/dst node ids
                 g = dgl.graph((src_ids, dst_ids))
