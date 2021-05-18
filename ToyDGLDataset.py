@@ -179,11 +179,6 @@ class ToyDGLDataset(DGLDataset):
         for key in self.edgeFeatKeys:
             bins[key] = np.linspace(minEFeatValues[eFeatMapping[key]], maxEFeatValues[eFeatMapping[key]], nBins)
         bins['NodeCount'] = np.linspace(minNodeCount, maxNodeCount, nBins)
-        print(maxNFeatValues)
-        print(minNFeatValues)
-        print(maxEFeatValues)
-        print(minEFeatValues)
-        print(bins)
         self.saveHistograms(bins)
         self.printProperties()
 
