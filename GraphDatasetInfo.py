@@ -51,11 +51,10 @@ class Distribution(JsonSerializable, PPrintable):
 
 
 class GraphSubdatasetInfo(JsonSerializable, PPrintable):
-    def __init__(self, name: str, description: str, label: int,
+    def __init__(self, name: str, label: int,
     graphCount: int, nodesPerGraph: Distribution, 
     nodeFeatMapping: dict, nodeFeat: list, edgeFeatMapping: dict, edgeFeat: list):
         self.name = name
-        self.description = description
         self.label = label
         self.graphCount = graphCount
         self.nodesPerGraph = nodesPerGraph
@@ -66,9 +65,8 @@ class GraphSubdatasetInfo(JsonSerializable, PPrintable):
     
     
 class GraphDatasetInfo(JsonSerializable, PPrintable):
-    def __init__(self, name: str, description: str, splitPercentages: dict, graphSubDatasetInfos: list):
+    def __init__(self, name: str, splitPercentages: dict, graphSubDatasetInfos: list):
         self.name = name
-        self.description = description
         splitSum = splitPercentages['train'] + splitPercentages['valid'] + splitPercentages['test']
         if abs(splitSum - 1)  > 0.00001:
             raise Exception(f'Split percentages must add up to 1.0!, currently it adds up to {splitSum}')
