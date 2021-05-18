@@ -276,14 +276,14 @@ class ToyDGLDataset(DGLDataset):
     def saveHistograms(self, outputPath='', nBins=20):
         plt.figure(figsize=(10,7))
         matplotlib.rcParams.update({'font.size': 16})
-        #iterate through all edge/node features
+        # iterate through all edge/node features
         for key in self.nodeAndEdgeFeatKeys:
             # iterate through all graphClasses
             for gclass in self.graphClasses:
                 data = self._accumulateFeature(key, gclass).detach().cpu().numpy()
                 p = np.percentile(data, [1, 99])
                 bins = np.linspace(p[0], p[1], nBins)
-                plt.hist(data, bins, alpha=0.7, label=f'GraphClass {gclass}', histtype="step")
+                plt.hist(data, bins, label=f'GraphClass {gclass}', histtype="step")
 
             plt.title(key)
             plt.ylabel("frequency")
@@ -295,6 +295,28 @@ class ToyDGLDataset(DGLDataset):
             outputFilePath = path.join(outputPath, filename)
             plt.savefig(outputFilePath)
             plt.clf()
+
+        # get node count histogram
+        for gclass in self.graphClasses:
+            data = []
+            # dumb und bruteforce, but who cares..
+            for i in range(1, self.num_graphs):
+                if self.labels[i] == gclass:
+                    data.append(self.graphs[i].num_nodes())
+            p = np.percentile(data, [1, 99])
+            bins = np.linspace(p[0], p[1], nBins)
+            plt.hist(data, bins, label=f'GraphClass {gclass}', histtype="step")
+
+        plt.title('Node count')
+        plt.ylabel("frequency")
+        plt.legend(loc='upper right')
+        from os import path
+        filename = f"Histo_{self.name}_NodeCount.jpg"
+        if outputPath == '':
+            outputPath = self.save_dir
+        outputFilePath = path.join(outputPath, filename)
+        plt.savefig(outputFilePath)
+        plt.clf()
 
 
 def GetNodeFeatureVectors(graph):
