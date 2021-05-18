@@ -64,14 +64,17 @@ class ToyDGLDataset(DGLDataset):
         self.graphs = []
         self.labels = []
         nFeatMapping = self.info.nodeFeatMapping
+        eFeatMapping = self.info.edgeFeatMapping
         phi = nFeatMapping['Phi']
         eta = nFeatMapping['Eta']
 
         # needed to generate bins for histograms
-        minValues = []
-        maxValues = {}
-        nBins = 20
-        bins = {}
+        minNFeatValues = [9999999999 for x in range(self.dim_nfeats)]
+        maxNFeatValues = [-9999999999 for x in range(self.dim_nfeats)]
+        minEFeatValues = [9999999999 for x in range(self.dim_efeats)]
+        maxEFeatValues = [-9999999999 for x in range(self.dim_efeats)]
+        minNodeCount = 9999999999
+        maxNodeCount = -9999999999
 
         def calcAbsDiff(vec):
             """
@@ -93,17 +96,29 @@ class ToyDGLDataset(DGLDataset):
 
             for i in tqdm(range(graphInfo.graphCount), 
             desc=f'({it}/{len(self.info.subDatasetInfoList)}) Generating graphs from SubDataset {graphInfo.name}'):
-                nodeCount = int(nodeCounts[i])
-                nodeFeatures = []
 
+                nodeCount = int(nodeCounts[i])
+                # get min/max nodeCount for histogram binning
+                if nodeCount < minNodeCount:
+                    minNodeCount = nodeCount
+                if nodeCount > maxNodeCount:
+                    maxNodeCount = nodeCount
+
+                nodeFeatures = []
                 # generate nodefeature numpy arrays from distribution information
                 for feat in graphInfo.nodeFeat:
                     # nodeFeature[nFeatMapping['Phi']] -> contains a list with ALL Phis from this subdataset
                     nodeFeatures.append(feat.ToNumpy(nodeCount))
 
-                for feat in nodeFeatures:
-                    temp = np.amin(feat)
-                
+                # get min/max node feature values for histogram binning
+                for i in range(self.dim_nfeats):
+                    tempMin = round(np.amin(nodeFeatures[i]))
+                    if tempMin < minNFeatValues[i]:
+                        minNFeatValues[i] = tempMin
+                    tempMax = round(np.amax(nodeFeatures[i]))
+                    if tempMax > maxNFeatValues[i]:
+                        maxNFeatValues[i] = tempMax
+ 
                 # calculate edge features efficiently through matrices
                 deltaPhi = calcAbsDiff(nodeFeatures[phi])
                 deltaEta = calcAbsDiff(nodeFeatures[eta])
@@ -121,6 +136,17 @@ class ToyDGLDataset(DGLDataset):
 
                             # add edge features (care, order should be the same as in eFeatMapping!)
                             edgeFeatures.append([deltaEta[j][k], deltaPhi[j][k], rapiditySquared[j][k]])
+
+                # get min/max edge feature values for histogram binning
+                tempMin = np.amin(edgeFeatures, axis=0)
+                tempMin = [round(x) for x in tempMin]
+                tempMax = np.amax(edgeFeatures, axis=0)
+                tempMax = [round(x) for x in tempMax]
+                for i in range(self.dim_efeats):
+                    if tempMin[i] < minEFeatValues[i]:
+                        minEFeatValues[i] = tempMin[i]
+                    if tempMax[i] > maxEFeatValues[i]:
+                        maxEFeatValues[i] = tempMax[i]
 
                 # build graph based on src/dst node ids
                 g = dgl.graph((src_ids, dst_ids))
@@ -146,7 +172,19 @@ class ToyDGLDataset(DGLDataset):
 
         # save histograms
         print('Calculating and saving histograms...')
-        self.saveHistograms()
+        nBins = 20
+        bins = {}
+        for key in self.nodeFeatKeys:
+            bins[key] = np.linspace(minNFeatValues[nFeatMapping[key]], maxNFeatValues[nFeatMapping[key]], nBins)
+        for key in self.edgeFeatKeys:
+            bins[key] = np.linspace(minEFeatValues[eFeatMapping[key]], maxEFeatValues[eFeatMapping[key]], nBins)
+        bins['NodeCount'] = np.linspace(minNodeCount, maxNodeCount, nBins)
+        print(maxNFeatValues)
+        print(minNFeatValues)
+        print(maxEFeatValues)
+        print(minEFeatValues)
+        print(bins)
+        self.saveHistograms(bins)
         self.printProperties()
 
     def __getitem__(self, idx):
@@ -283,10 +321,9 @@ class ToyDGLDataset(DGLDataset):
                 accumulatedFeat = torch.cat((accumulatedFeat, feat))
         return accumulatedFeat
 
-    def saveHistograms(self, outputPath='', nBins=20):
+    def saveHistograms(self, bins, outputPath=''):
         plt.figure(figsize=(10,7))
         matplotlib.rcParams.update({'font.size': 16})
-        bins = self._getBins(nBins)
         # iterate through all edge/node features
         for key in self.nodeAndEdgeFeatKeys:
             # iterate through all graphClasses
