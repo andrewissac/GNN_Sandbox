@@ -67,6 +67,12 @@ class ToyDGLDataset(DGLDataset):
         phi = nFeatMapping['Phi']
         eta = nFeatMapping['Eta']
 
+        # needed to generate bins for histograms
+        minValues = []
+        maxValues = {}
+        nBins = 20
+        bins = {}
+
         def calcAbsDiff(vec):
             """
             To calculate deltaPhi, deltaEta, rapiditysquared efficiently the following is done:
@@ -92,7 +98,11 @@ class ToyDGLDataset(DGLDataset):
 
                 # generate nodefeature numpy arrays from distribution information
                 for feat in graphInfo.nodeFeat:
+                    # nodeFeature[nFeatMapping['Phi']] -> contains a list with ALL Phis from this subdataset
                     nodeFeatures.append(feat.ToNumpy(nodeCount))
+
+                for feat in nodeFeatures:
+                    temp = np.amin(feat)
                 
                 # calculate edge features efficiently through matrices
                 deltaPhi = calcAbsDiff(nodeFeatures[phi])
@@ -114,7 +124,7 @@ class ToyDGLDataset(DGLDataset):
 
                 # build graph based on src/dst node ids
                 g = dgl.graph((src_ids, dst_ids))
-                # dstack -> each entry is now a node feature vec containing [P_t, Eta, Phi,...]
+                # dstack -> each entry is now a node feature vec containing [P_t, Eta, Phi, Mass, Type] for that node
                 nodeFeatures = np.dstack(nodeFeatures).squeeze()
                 g.ndata['feat'] = torch.from_numpy(nodeFeatures)
                 g.edata['feat'] = torch.tensor(edgeFeatures)
@@ -266,24 +276,23 @@ class ToyDGLDataset(DGLDataset):
         """
         if self.num_graphs <= 0:
             raise Exception('There are no graphs in the dataset.')
-        feat = self._getFeatureByKey(self.graphs[0], key)
+        accumulatedFeat = self._getFeatureByKey(self.graphs[0], key)
         for i in range(1, self.num_graphs):
             if self.labels[i] == graphLabel:
-                data = self._getFeatureByKey(self.graphs[i], key)
-                feat = torch.cat((feat, data))
-        return feat
+                feat = self._getFeatureByKey(self.graphs[i], key)
+                accumulatedFeat = torch.cat((accumulatedFeat, feat))
+        return accumulatedFeat
 
     def saveHistograms(self, outputPath='', nBins=20):
         plt.figure(figsize=(10,7))
         matplotlib.rcParams.update({'font.size': 16})
+        bins = self._getBins(nBins)
         # iterate through all edge/node features
         for key in self.nodeAndEdgeFeatKeys:
             # iterate through all graphClasses
             for gclass in self.graphClasses:
                 data = self._accumulateFeature(key, gclass).detach().cpu().numpy()
-                p = np.percentile(data, [1, 99])
-                bins = np.linspace(p[0], p[1], nBins)
-                plt.hist(data, bins, label=f'GraphClass {gclass}', histtype="step")
+                plt.hist(data, bins[key], label=f'GraphClass {gclass}', histtype="step")
 
             plt.title(key)
             plt.ylabel("frequency")
@@ -300,12 +309,10 @@ class ToyDGLDataset(DGLDataset):
         for gclass in self.graphClasses:
             data = []
             # dumb und bruteforce, but who cares..
-            for i in range(1, self.num_graphs):
+            for i in range(0, self.num_graphs):
                 if self.labels[i] == gclass:
                     data.append(self.graphs[i].num_nodes())
-            p = np.percentile(data, [1, 99])
-            bins = np.linspace(p[0], p[1], nBins)
-            plt.hist(data, bins, label=f'GraphClass {gclass}', histtype="step")
+            plt.hist(data, bins['NodeCount'], label=f'GraphClass {gclass}', histtype="step")
 
         plt.title('Node count')
         plt.ylabel("frequency")
@@ -317,6 +324,28 @@ class ToyDGLDataset(DGLDataset):
         outputFilePath = path.join(outputPath, filename)
         plt.savefig(outputFilePath)
         plt.clf()
+
+    def _getBins(self, nBins):
+        """
+        Goes through all graphs, concats the specified feature (by key)
+        Then gets the minimum and maximum values to generate the bins for the histograms.
+        """
+        bins = {}
+        if self.num_graphs <= 0:
+            raise Exception('There are no graphs in the dataset.')
+        for key in self.nodeAndEdgeFeatKeys:
+            accumulatedFeat = self._getFeatureByKey(self.graphs[0], key)
+            for i in range(1, self.num_graphs):
+                feat = self._getFeatureByKey(self.graphs[i], key)
+                accumulatedFeat = torch.cat((accumulatedFeat, feat))
+            minBin, maxBin = accumulatedFeat.min().item(), accumulatedFeat.max().item()
+            bins[key] = np.linspace(minBin, maxBin, nBins)
+        
+        numNodes = []
+        for g in self.graphs:
+            numNodes.append(g.num_nodes())
+        bins['NodeCount'] = np.linspace(min(numNodes), max(numNodes), nBins)
+        return bins
 
 
 def GetNodeFeatureVectors(graph):
