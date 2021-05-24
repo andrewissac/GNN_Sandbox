@@ -9,6 +9,7 @@ class GCN_OnlyNodeFeatures(nn.Module):
         super(GCN_OnlyNodeFeatures, self).__init__()
         self.conv1 = GraphConv(in_feats, h_feats)
         self.conv2 = GraphConv(h_feats, num_classes)
+        self.softmax = nn.Softmax(dim=1)
         
     def reset_parameters(self):
         self.conv1.reset_parameters()

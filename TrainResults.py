@@ -91,6 +91,7 @@ class TrainResults(PPrintable):
         plt.figure(figsize=(10,7))
         plt.plot(self.epoch, self.loss)
         plt.title('loss')
+        plt.ylim(0, max(self.loss))
         plt.ylabel('loss')
         plt.xlabel('epoch')
         outputFilePath = path.join(outputPath, 'loss.jpg')
@@ -103,6 +104,7 @@ class TrainResults(PPrintable):
         plt.plot(self.epoch, self.val_acc, label='val acc')
         plt.plot(self.epoch, self.test_acc, label='test acc')
         plt.title('accuracy')
+        plt.ylim(0, 1)
         plt.ylabel('accuracy')
         plt.xlabel('epoch')
         plt.legend()
@@ -135,9 +137,9 @@ class TrainResults(PPrintable):
 
     def _getFprTpr(self):
         y_true = self.best_result['test']['y_true']
-        y_pred = self.best_result['test']['y_pred']
+        y_score = self.best_result['test']['y_scoreClass1']
 
-        fpr, tpr, _ = roc_curve(y_true, y_pred)
+        fpr, tpr, _ = roc_curve(y_true, y_score)
         return fpr, tpr
 
     def savePlots(self, outputPath):
