@@ -15,7 +15,6 @@ from dgl import save_graphs, load_graphs
 from dgl.data.utils import makedirs, save_info, load_info
 from GraphDatasetInfo import GraphDatasetInfo
 
-# TODO: switch to building graphs entirely in DGL, instead of numpy->networkx->dgl
 class ToyDGLDataset(DGLDataset):
     """ Template for customizing graph datasets in DGL.
 
