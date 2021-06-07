@@ -137,15 +137,16 @@ class ToyDGLDataset(DGLDataset):
                             edgeFeatures.append([deltaEta[j][k], deltaPhi[j][k], rapiditySquared[j][k]])
 
                 # get min/max edge feature values for histogram binning
-                tempMin = np.amin(edgeFeatures, axis=0)
-                tempMin = [round(x) for x in tempMin]
-                tempMax = np.amax(edgeFeatures, axis=0)
-                tempMax = [round(x) for x in tempMax]
-                for i in range(self.dim_efeats):
-                    if tempMin[i] < minEFeatValues[i]:
-                        minEFeatValues[i] = tempMin[i]
-                    if tempMax[i] > maxEFeatValues[i]:
-                        maxEFeatValues[i] = tempMax[i]
+                if(len(edgeFeatures) > 0):
+                    tempMin = np.amin(edgeFeatures, axis=0)
+                    tempMin = [round(x) for x in tempMin]
+                    tempMax = np.amax(edgeFeatures, axis=0)
+                    tempMax = [round(x) for x in tempMax]
+                    for i in range(self.dim_efeats):
+                        if tempMin[i] < minEFeatValues[i]:
+                            minEFeatValues[i] = tempMin[i]
+                        if tempMax[i] > maxEFeatValues[i]:
+                            maxEFeatValues[i] = tempMax[i]
 
                 # build graph based on src/dst node ids
                 g = dgl.graph((src_ids, dst_ids))
@@ -177,7 +178,7 @@ class ToyDGLDataset(DGLDataset):
             bins[key] = np.linspace(minNFeatValues[nFeatMapping[key]], maxNFeatValues[nFeatMapping[key]], nBins)
         for key in self.edgeFeatKeys:
             bins[key] = np.linspace(minEFeatValues[eFeatMapping[key]], maxEFeatValues[eFeatMapping[key]], nBins)
-        bins['NodeCount'] = np.linspace(minNodeCount, maxNodeCount, nBins)
+        bins['NodeCount'] = np.arange(minNodeCount, maxNodeCount+1)
         self.saveHistograms(bins)
         self.printProperties()
 
@@ -295,9 +296,9 @@ class ToyDGLDataset(DGLDataset):
 
     def _getFeatureByKey(self, g, key):
         if(key in self.info.nodeFeatMapping):
-            return g.ndata['feat'][:,self.info.nodeFeatMapping[key]]
+            return g.ndata['feat'][:,self.info.nodeFeatMapping[key]].tolist()
         elif(key in self.info.edgeFeatMapping):
-            return g.edata['feat'][:,self.info.edgeFeatMapping[key]]
+            return g.edata['feat'][:,self.info.edgeFeatMapping[key]].tolist()
         else:
             raise KeyError(f'Key {key} not found in node or edge data.')
 
@@ -312,18 +313,19 @@ class ToyDGLDataset(DGLDataset):
         for i in range(1, self.num_graphs):
             if self.labels[i] == graphLabel:
                 feat = self._getFeatureByKey(self.graphs[i], key)
-                accumulatedFeat = torch.cat((accumulatedFeat, feat))
+                accumulatedFeat.extend(feat)
         return accumulatedFeat
 
     def saveHistograms(self, bins, outputPath=''):
         plt.figure(figsize=(10,7))
         matplotlib.rcParams.update({'font.size': 16})
+        lineWidth = 2
         # iterate through all edge/node features
         for key in self.nodeAndEdgeFeatKeys:
             # iterate through all graphClasses
             for gclass in self.graphClasses:
-                data = self._accumulateFeature(key, gclass).detach().cpu().numpy()
-                plt.hist(data, bins[key], label=f'GraphClass {gclass}', histtype="step")
+                data = self._accumulateFeature(key, gclass)
+                plt.hist(data, bins[key], label=f'GraphClass {gclass}', histtype="step", linewidth=lineWidth)
 
             plt.title(key)
             plt.ylabel("frequency")
@@ -343,7 +345,7 @@ class ToyDGLDataset(DGLDataset):
             for i in range(0, self.num_graphs):
                 if self.labels[i] == gclass:
                     data.append(self.graphs[i].num_nodes())
-            plt.hist(data, bins['NodeCount'], label=f'GraphClass {gclass}', histtype="step")
+            plt.hist(data, bins['NodeCount'], label=f'GraphClass {gclass}', histtype="step", linewidth=lineWidth)
 
         plt.title('Node count')
         plt.ylabel("frequency")
@@ -355,29 +357,6 @@ class ToyDGLDataset(DGLDataset):
         outputFilePath = path.join(outputPath, filename)
         plt.savefig(outputFilePath)
         plt.clf()
-
-    def _getBins(self, nBins):
-        """
-        Goes through all graphs, concats the specified feature (by key)
-        Then gets the minimum and maximum values to generate the bins for the histograms.
-        """
-        bins = {}
-        if self.num_graphs <= 0:
-            raise Exception('There are no graphs in the dataset.')
-        for key in self.nodeAndEdgeFeatKeys:
-            accumulatedFeat = self._getFeatureByKey(self.graphs[0], key)
-            for i in range(1, self.num_graphs):
-                feat = self._getFeatureByKey(self.graphs[i], key)
-                accumulatedFeat = torch.cat((accumulatedFeat, feat))
-            minBin, maxBin = accumulatedFeat.min().item(), accumulatedFeat.max().item()
-            bins[key] = np.linspace(minBin, maxBin, nBins)
-        
-        numNodes = []
-        for g in self.graphs:
-            numNodes.append(g.num_nodes())
-        bins['NodeCount'] = np.linspace(min(numNodes), max(numNodes), nBins)
-        return bins
-
 
 def GetNodeFeatureVectors(graph):
     #print(graph.ndata.values())
