@@ -15,7 +15,7 @@ from dgl import save_graphs, load_graphs
 from dgl.data.utils import makedirs, save_info, load_info
 from GraphDatasetInfo import GraphDatasetInfo
 
-class ToyDGLDataset(DGLDataset):
+class ToyDGLDataset_v2(DGLDataset):
     """ Template for customizing graph datasets in DGL.
 
     Parameters
@@ -51,7 +51,7 @@ class ToyDGLDataset(DGLDataset):
                  verbose=True):
         self.info = info
         self.shuffleDataset = shuffleDataset
-        super(ToyDGLDataset, self).__init__(name=name,
+        super(ToyDGLDataset_v2, self).__init__(name=name,
                                          url=url, 
                                          raw_dir=raw_dir, 
                                          save_dir=save_dir,
@@ -64,8 +64,10 @@ class ToyDGLDataset(DGLDataset):
         self.labels = []
         nFeatMapping = self.info.nodeFeatMapping
         eFeatMapping = self.info.edgeFeatMapping
+        gFeatMapping = self.info.graphFeatMapping
         phi = nFeatMapping['Phi']
         eta = nFeatMapping['Eta']
+        pt = nFeatMapping['P_t']
 
         # needed to generate bins for histograms
         minNFeatValues = [9999999999 for x in range(self.dim_nfeats)]
@@ -148,6 +150,7 @@ class ToyDGLDataset(DGLDataset):
                         if tempMax[i] > maxEFeatValues[i]:
                             maxEFeatValues[i] = tempMax[i]
 
+
                 # build graph based on src/dst node ids
                 g = dgl.graph((src_ids, dst_ids))
                 # dstack -> each entry is now a node feature vec containing [P_t, Eta, Phi, Mass, Type] for that node
@@ -156,6 +159,9 @@ class ToyDGLDataset(DGLDataset):
                 nodeFeatures = np.dstack(nodeFeatures).squeeze()
                 g.ndata['feat'] = torch.from_numpy(nodeFeatures)
                 g.edata['feat'] = torch.tensor(edgeFeatures)
+                # order: 1st NodeCount, 2nd: TotalP_t
+                graphFeatures = { 'feat' : torch.from_numpy(np.array([nodeCount, np.sum(nodeFeatures[pt])]))}
+                setattr(g, 'gdata', graphFeatures)
                 
                 self.graphs.append(g)
                 self.labels.append(graphInfo.label)

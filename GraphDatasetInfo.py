@@ -7,7 +7,8 @@ from JsonSerializable import JsonSerializable
 class GraphSubdatasetInfo(JsonSerializable, PPrintable):
     def __init__(self, name: str, label: int,
     graphCount: int, nodesPerGraph: Distribution, 
-    nodeFeatMapping: dict, nodeFeat: list, edgeFeatMapping: dict, edgeFeat: list):
+    nodeFeatMapping: dict, nodeFeat: list, 
+    edgeFeatMapping: dict, graphFeatMapping: dict):
         self.name = name
         self.label = label
         self.graphCount = graphCount
@@ -15,7 +16,7 @@ class GraphSubdatasetInfo(JsonSerializable, PPrintable):
         self.nodeFeatMapping = nodeFeatMapping
         self.nodeFeat = nodeFeat
         self.edgeFeatMapping = edgeFeatMapping
-        self.edgeFeat = edgeFeat
+        self.graphFeatMapping = graphFeatMapping
     
     
 class GraphDatasetInfo(JsonSerializable, PPrintable):
@@ -31,6 +32,7 @@ class GraphDatasetInfo(JsonSerializable, PPrintable):
         # assuming the node/edge feature mapping of all subdatasets are equal!
         self.nodeFeatMapping = self.subDatasetInfoList[0].nodeFeatMapping
         self.edgeFeatMapping = self.subDatasetInfoList[0].edgeFeatMapping
+        self.graphFeatMapping = self.subDatasetInfoList[0].graphFeatMapping
 
         gclasses = set()
         for subdatasetinfo in self.subDatasetInfoList:
