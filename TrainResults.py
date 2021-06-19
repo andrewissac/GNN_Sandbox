@@ -120,7 +120,7 @@ class TrainResults(PPrintable):
         plt.plot(self.epoch, self.val_acc, label='val acc', linewidth=lineWidth)
         plt.plot(self.epoch, self.test_acc, label='test acc', linewidth=lineWidth)
         plt.title('accuracy')
-        plt.ylim(0, 1)
+        plt.ylim(0, 1.05)
         plt.ylabel('accuracy')
         plt.xlabel('epoch')
         plt.legend()

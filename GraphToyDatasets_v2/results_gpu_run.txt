@@ -1,0 +1,170 @@
+Device: cuda
+Done loading data from cached files.
+Beginning training on dataset Toy0_v2_0
+Epoch: 0, Loss: 1.7529, Train: 0.501, Valid: 0.499, Test: 0.494, AUC: 0.489
+Epoch: 5, Loss: 0.6977, Train: 0.498, Valid: 0.499, Test: 0.487, AUC: 0.495
+Epoch: 10, Loss: 0.6945, Train: 0.499, Valid: 0.502, Test: 0.503, AUC: 0.495
+Epoch: 15, Loss: 0.6944, Train: 0.502, Valid: 0.498, Test: 0.494, AUC: 0.481
+Epoch: 20, Loss: 0.6951, Train: 0.502, Valid: 0.498, Test: 0.494, AUC: 0.481
+Epoch: 25, Loss: 0.6950, Train: 0.498, Valid: 0.502, Test: 0.506, AUC: 0.481
+Best epoch: 
+Epoch: 13, Loss: 0.6944, Train: 0.501, Valid: 0.505, Test: 0.499, AUC: 0.481
+------------------(1/14) models trained------------------
+
+Done loading data from cached files.
+Beginning training on dataset Toy0_v2_1
+Epoch: 0, Loss: 0.9979, Train: 0.558, Valid: 0.557, Test: 0.566, AUC: 0.582
+Epoch: 5, Loss: 0.6145, Train: 0.641, Valid: 0.644, Test: 0.647, AUC: 0.747
+Epoch: 10, Loss: 0.5727, Train: 0.687, Valid: 0.688, Test: 0.695, AUC: 0.781
+Epoch: 15, Loss: 0.5677, Train: 0.685, Valid: 0.684, Test: 0.691, AUC: 0.781
+Epoch: 20, Loss: 0.5669, Train: 0.690, Valid: 0.691, Test: 0.698, AUC: 0.781
+Epoch: 25, Loss: 0.5701, Train: 0.692, Valid: 0.692, Test: 0.699, AUC: 0.781
+Best epoch: 
+Epoch: 9, Loss: 0.5749, Train: 0.693, Valid: 0.696, Test: 0.696, AUC: 0.781
+------------------(2/14) models trained------------------
+
+Done loading data from cached files.
+Beginning training on dataset Toy1_v2_0
+Epoch: 0, Loss: 1.2143, Train: 0.722, Valid: 0.722, Test: 0.716, AUC: 0.802
+Epoch: 5, Loss: 0.3554, Train: 0.854, Valid: 0.852, Test: 0.847, AUC: 0.914
+Epoch: 10, Loss: 0.2756, Train: 0.898, Valid: 0.899, Test: 0.892, AUC: 0.941
+Epoch: 15, Loss: 0.2271, Train: 0.922, Valid: 0.923, Test: 0.918, AUC: 0.953
+Epoch: 20, Loss: 0.1987, Train: 0.935, Valid: 0.936, Test: 0.931, AUC: 0.959
+Epoch: 25, Loss: 0.1862, Train: 0.936, Valid: 0.938, Test: 0.930, AUC: 0.961
+Best epoch: 
+Epoch: 29, Loss: 0.1762, Train: 0.943, Valid: 0.945, Test: 0.937, AUC: 0.963
+------------------(3/14) models trained------------------
+
+Done loading data from cached files.
+Beginning training on dataset Toy1_v2_1
+Epoch: 0, Loss: 2.0266, Train: 0.735, Valid: 0.730, Test: 0.728, AUC: 0.836
+Epoch: 5, Loss: 0.4126, Train: 0.833, Valid: 0.833, Test: 0.830, AUC: 0.894
+Epoch: 10, Loss: 0.3795, Train: 0.855, Valid: 0.852, Test: 0.852, AUC: 0.903
+Epoch: 15, Loss: 0.3590, Train: 0.872, Valid: 0.871, Test: 0.869, AUC: 0.915
+Epoch: 20, Loss: 0.3465, Train: 0.880, Valid: 0.879, Test: 0.878, AUC: 0.919
+Epoch: 25, Loss: 0.3298, Train: 0.896, Valid: 0.894, Test: 0.894, AUC: 0.922
+Best epoch: 
+Epoch: 27, Loss: 0.3274, Train: 0.901, Valid: 0.899, Test: 0.899, AUC: 0.922
+------------------(4/14) models trained------------------
+
+Done loading data from cached files.
+Beginning training on dataset Toy2_v2_0
+Epoch: 0, Loss: 0.7160, Train: 0.642, Valid: 0.638, Test: 0.637, AUC: 0.782
+Epoch: 5, Loss: 0.4064, Train: 0.845, Valid: 0.843, Test: 0.850, AUC: 0.940
+Epoch: 10, Loss: 0.2219, Train: 0.951, Valid: 0.952, Test: 0.956, AUC: 0.993
+Epoch: 15, Loss: 0.1109, Train: 0.990, Valid: 0.989, Test: 0.991, AUC: 1.000
+Epoch: 20, Loss: 0.0632, Train: 0.993, Valid: 0.993, Test: 0.993, AUC: 1.000
+Epoch: 25, Loss: 0.0409, Train: 0.997, Valid: 0.998, Test: 0.998, AUC: 1.000
+Best epoch: 
+Epoch: 29, Loss: 0.0320, Train: 0.998, Valid: 0.998, Test: 0.998, AUC: 1.000
+------------------(5/14) models trained------------------
+
+Done loading data from cached files.
+Beginning training on dataset Toy2_v2_1
+Epoch: 0, Loss: 1.6814, Train: 0.426, Valid: 0.434, Test: 0.431, AUC: 0.316
+Epoch: 5, Loss: 0.5727, Train: 0.791, Valid: 0.788, Test: 0.788, AUC: 0.864
+Epoch: 10, Loss: 0.4545, Train: 0.822, Valid: 0.818, Test: 0.819, AUC: 0.899
+Epoch: 15, Loss: 0.3617, Train: 0.886, Valid: 0.885, Test: 0.885, AUC: 0.960
+Epoch: 20, Loss: 0.2774, Train: 0.942, Valid: 0.940, Test: 0.941, AUC: 0.985
+Epoch: 25, Loss: 0.2014, Train: 0.972, Valid: 0.971, Test: 0.972, AUC: 0.996
+Best epoch: 
+Epoch: 29, Loss: 0.1527, Train: 0.984, Valid: 0.983, Test: 0.984, AUC: 0.998
+------------------(6/14) models trained------------------
+
+Done loading data from cached files.
+Beginning training on dataset Toy3_v2_0
+Epoch: 0, Loss: 0.6632, Train: 0.814, Valid: 0.812, Test: 0.813, AUC: 0.914
+Epoch: 5, Loss: 0.1731, Train: 0.954, Valid: 0.954, Test: 0.954, AUC: 0.992
+Epoch: 10, Loss: 0.1177, Train: 0.961, Valid: 0.962, Test: 0.962, AUC: 0.994
+Epoch: 15, Loss: 0.0962, Train: 0.966, Valid: 0.968, Test: 0.970, AUC: 0.996
+Epoch: 20, Loss: 0.0786, Train: 0.974, Valid: 0.976, Test: 0.978, AUC: 0.998
+Epoch: 25, Loss: 0.0614, Train: 0.978, Valid: 0.979, Test: 0.980, AUC: 0.999
+Best epoch: 
+Epoch: 28, Loss: 0.0519, Train: 0.985, Valid: 0.986, Test: 0.988, AUC: 0.999
+------------------(7/14) models trained------------------
+
+Done loading data from cached files.
+Beginning training on dataset Toy3_v2_1
+Epoch: 0, Loss: 0.5612, Train: 0.906, Valid: 0.901, Test: 0.904, AUC: 0.974
+Epoch: 5, Loss: 0.1606, Train: 0.940, Valid: 0.940, Test: 0.943, AUC: 0.988
+Epoch: 10, Loss: 0.1275, Train: 0.953, Valid: 0.954, Test: 0.956, AUC: 0.992
+Epoch: 15, Loss: 0.0962, Train: 0.968, Valid: 0.968, Test: 0.971, AUC: 0.996
+Epoch: 20, Loss: 0.0615, Train: 0.984, Valid: 0.983, Test: 0.985, AUC: 0.999
+Epoch: 25, Loss: 0.0388, Train: 0.993, Valid: 0.992, Test: 0.994, AUC: 1.000
+Best epoch: 
+Epoch: 28, Loss: 0.0309, Train: 0.995, Valid: 0.995, Test: 0.996, AUC: 1.000
+------------------(8/14) models trained------------------
+
+Done loading data from cached files.
+Beginning training on dataset Toy4_v2_0
+Epoch: 0, Loss: 0.2409, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 5, Loss: 0.0018, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 10, Loss: 0.0006, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 15, Loss: 0.0003, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 20, Loss: 0.0002, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 25, Loss: 0.0001, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Best epoch: 
+Epoch: 0, Loss: 0.2409, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+------------------(9/14) models trained------------------
+
+Done loading data from cached files.
+Beginning training on dataset Toy4_v2_1
+Epoch: 0, Loss: 1.3715, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 5, Loss: 0.0009, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 10, Loss: 0.0005, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 15, Loss: 0.0003, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 20, Loss: 0.0002, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 25, Loss: 0.0001, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Best epoch: 
+Epoch: 0, Loss: 1.3715, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+------------------(10/14) models trained------------------
+
+Done loading data from cached files.
+Beginning training on dataset Toy5_v2_0
+Epoch: 0, Loss: 1.2903, Train: 0.907, Valid: 0.909, Test: 0.909, AUC: 0.971
+Epoch: 5, Loss: 0.2701, Train: 0.936, Valid: 0.935, Test: 0.935, AUC: 0.985
+Epoch: 10, Loss: 0.1805, Train: 0.937, Valid: 0.936, Test: 0.936, AUC: 0.985
+Epoch: 15, Loss: 0.1645, Train: 0.936, Valid: 0.935, Test: 0.936, AUC: 0.985
+Epoch: 20, Loss: 0.1614, Train: 0.936, Valid: 0.936, Test: 0.937, AUC: 0.985
+Epoch: 25, Loss: 0.1602, Train: 0.937, Valid: 0.936, Test: 0.937, AUC: 0.986
+Best epoch: 
+Epoch: 29, Loss: 0.1599, Train: 0.937, Valid: 0.936, Test: 0.937, AUC: 0.986
+------------------(11/14) models trained------------------
+
+Done loading data from cached files.
+Beginning training on dataset Toy5_v2_1
+Epoch: 0, Loss: 1.4634, Train: 0.876, Valid: 0.875, Test: 0.873, AUC: 0.957
+Epoch: 5, Loss: 0.2494, Train: 0.918, Valid: 0.915, Test: 0.919, AUC: 0.972
+Epoch: 10, Loss: 0.2145, Train: 0.918, Valid: 0.916, Test: 0.919, AUC: 0.972
+Epoch: 15, Loss: 0.2110, Train: 0.918, Valid: 0.916, Test: 0.919, AUC: 0.973
+Epoch: 20, Loss: 0.2094, Train: 0.920, Valid: 0.917, Test: 0.920, AUC: 0.973
+Epoch: 25, Loss: 0.2084, Train: 0.919, Valid: 0.917, Test: 0.920, AUC: 0.973
+Best epoch: 
+Epoch: 27, Loss: 0.2089, Train: 0.920, Valid: 0.918, Test: 0.921, AUC: 0.973
+------------------(12/14) models trained------------------
+
+Done loading data from cached files.
+Beginning training on dataset Toy6_v2_0
+Epoch: 0, Loss: 1.6157, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 5, Loss: 0.0025, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 10, Loss: 0.0009, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 15, Loss: 0.0004, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 20, Loss: 0.0002, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 25, Loss: 0.0002, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Best epoch: 
+Epoch: 0, Loss: 1.6157, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+------------------(13/14) models trained------------------
+
+Done loading data from cached files.
+Beginning training on dataset Toy6_v2_1
+Epoch: 0, Loss: 1.5520, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 5, Loss: 0.0040, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 10, Loss: 0.0014, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 15, Loss: 0.0007, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 20, Loss: 0.0004, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Epoch: 25, Loss: 0.0003, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+Best epoch: 
+Epoch: 0, Loss: 1.5520, Train: 1.000, Valid: 1.000, Test: 1.000, AUC: 1.000
+------------------(14/14) models trained------------------
+
+2411.779823064804 seconds elapsed
