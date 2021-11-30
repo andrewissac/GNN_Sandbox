@@ -1,5 +1,6 @@
 import json
 import pickle
+import time
 import matplotlib
 import matplotlib.pyplot as plt
 from os import path
@@ -7,12 +8,17 @@ from PPrintable import PPrintable
 from sklearn.metrics import roc_curve, auc
 
 matplotlib.rcParams.update({'font.size': 16})
+lw = 2
+xyLabelFontSize = 20
+xLabelPad = 10
+yLabelPad = 15
 
 class TrainResults(PPrintable):
     def __init__(self):
         self.epochIdx = 0
         self.epoch = []
         self.epochloss = []
+        self.epoch_val_loss = []
         self.runningloss = []
 
         self.train_result = []
@@ -32,12 +38,32 @@ class TrainResults(PPrintable):
         self.summary = []
         self.roc_auc = -1
 
+        self.trainingStartTime = 0
+        self.trainingEndTime = 0
+        self.trainingDuration = 0
+
+        self.fpr = None
+        self.tpr = None
+
+    def createFigure(self):
+        fig, ax = plt.subplots(figsize=(10,7))
+        ax.tick_params(pad=7)
+        return fig, ax
+
+    def startTrainingTimer(self):
+        self.trainingStartTime = time.time()
+
+    def endTrainingTimer(self):
+        self.trainingEndTime = time.time()
+        self.trainingDuration = self.trainingEndTime - self.trainingStartTime
+
     def addRunningLoss(self, runningLoss):
         self.runningloss.append(runningLoss)
 
     def addEpochResult(self, epochloss, train_result, val_result, test_result):
         self.epoch.append(self.epochIdx)
         self.epochloss.append(epochloss)
+        self.epoch_val_loss.append(val_result['loss'])
 
         self.train_result.append(train_result)
         trainAcc = train_result['acc']
@@ -65,16 +91,28 @@ class TrainResults(PPrintable):
 
         self.summary.append(f'Epoch: {self.epochIdx}, '
             f'Loss: {epochloss:.4f}, '
+            f'Valid Loss: {val_result["loss"]:.4f}, '
             f'Train: {trainAcc:.3f}, '
             f'Valid: {valAcc:.3f}, '
             f'Test: {testAcc:.3f}, '
-            f'AUC: {self.roc_auc:.3f}')
+            f'AUC: {self.roc_auc:.3f}\n')
 
         self.epochIdx += 1
 
-    def dumpSummary(self, outputPath):   
-        with open(path.join(outputPath, 'summary.json'), 'w') as f:
-            f.write(json.dumps(self.summary))
+    def dumpSummary(self, outputPath):
+        self.summary.append("\nBest epoch:\n")
+        self.summary.append(self.getBestResult())
+        self.summary.append(f"\nThe training took {int(self.trainingDuration)} seconds ({int(self.trainingDuration)/60:.2f} minutes).")
+
+        with open(path.join(outputPath, 'summary.txt'), 'w') as f:
+            f.writelines(self.summary)
+
+        def formatLoss(loss, idx):
+            return f'{loss:.4f}\n'
+            
+        with open(path.join(outputPath, 'runningloss.txt'), 'w') as f:
+            f.writelines([formatLoss(x, ind) for ind, x in enumerate(self.runningloss)])
+
 
     def printLastResult(self):
         self._printResult(-1)
@@ -82,68 +120,63 @@ class TrainResults(PPrintable):
     def printBestResult(self):
         print('Best epoch: ')
         self._printResult(self.best_val_acc_epoch)
+        print(f"\nThe training took {int(self.trainingDuration)} seconds ({int(self.trainingDuration)/60:.2f} minutes).")
+
+    def getBestResult(self):
+        return self.getResult(self.best_val_acc_epoch)
+
+    def getResult(self, idx):
+        return f'Epoch: {self.epoch[idx]}, Loss: {self.epochloss[idx]:.4f}, Validation Loss: {self.epoch_val_loss[idx]:.4f}, Train: {self.train_acc[idx]:.3f}, Validation: {self.val_acc[idx]:.3f}, Test: {self.test_acc[idx]:.3f}, AUC: {self.roc_auc:.3f}'
 
     def _printResult(self, idx):
-        print(f'Epoch: {self.epoch[idx]}, '
-            f'Loss: {self.epochloss[idx]:.4f}, '
-            f'Train: {self.train_acc[idx]:.3f}, '
-            f'Valid: {self.val_acc[idx]:.3f}, '
-            f'Test: {self.test_acc[idx]:.3f}, '
-            f'AUC: {self.roc_auc:.3f}')
+        print(self.getResult(idx))
 
     def saveLossPlot(self, outputPath):
-        lineWidth=2
-        plt.figure(figsize=(10,7))
-        plt.plot(self.epoch, self.epochloss, linewidth=lineWidth)
-        plt.title('loss per epoch')
-        plt.ylim(0, max(self.epochloss))
-        plt.ylabel('loss')
-        plt.xlabel('epoch')
-        outputFilePath = path.join(outputPath, 'epochloss.jpg')
+        fig, ax = self.createFigure()
+        ax.plot(self.epoch, self.epochloss, label="Training",linewidth=lw)
+        ax.plot(self.epoch, self.epoch_val_loss, label="Validation", linewidth=lw)
+        ax.set_ylabel('Loss', labelpad=xLabelPad, fontsize=xyLabelFontSize)
+        ax.set_xlabel('Epoch', labelpad=yLabelPad, fontsize=xyLabelFontSize)
+        ax.legend()
+        outputFilePath = path.join(outputPath, 'epochloss.png')
         plt.savefig(outputFilePath)
         plt.clf()
 
-        plt.figure(figsize=(10,7))
-        plt.plot(self.runningloss, linewidth=lineWidth)
-        plt.title('running loss')
-        plt.ylim(0, max(self.runningloss))
-        plt.ylabel('loss')
-        plt.xlabel('training step')
-        outputFilePath = path.join(outputPath, 'runningloss.jpg')
+        fig, ax = self.createFigure()
+        ax.plot(self.runningloss, label="Training",linewidth=lw)
+        ax.set_ylabel('Loss', labelpad=xLabelPad, fontsize=xyLabelFontSize)
+        ax.set_xlabel('Gradient step', labelpad=yLabelPad, fontsize=xyLabelFontSize)
+        ax.legend()
+        outputFilePath = path.join(outputPath, 'runningloss.png')
         plt.savefig(outputFilePath)
         plt.clf()
 
     def saveAccPlot(self, outputPath):
-        lineWidth=2
-        plt.figure(figsize=(10,7))
-        plt.plot(self.epoch, self.train_acc, label='train acc', linewidth=lineWidth)
-        plt.plot(self.epoch, self.val_acc, label='val acc', linewidth=lineWidth)
-        plt.plot(self.epoch, self.test_acc, label='test acc', linewidth=lineWidth)
-        plt.title('accuracy')
-        plt.ylim(0, 1.05)
-        plt.ylabel('accuracy')
-        plt.xlabel('epoch')
-        plt.legend()
-        outputFilePath = path.join(outputPath, 'accuracy.jpg')
+
+        fig, ax = self.createFigure()
+        ax.plot(self.epoch, self.train_acc, label='Training', linewidth=lw)
+        ax.plot(self.epoch, self.val_acc, label='Validation', linewidth=lw)
+        ax.set_ylabel('Accuracy', labelpad=xLabelPad, fontsize=xyLabelFontSize)
+        ax.set_xlabel('Epoch', labelpad=yLabelPad, fontsize=xyLabelFontSize)
+        ax.legend()
+        outputFilePath = path.join(outputPath, 'accuracy.png')
         plt.savefig(outputFilePath)
         plt.clf()
 
     def saveROCPlot(self, outputPath):
-        lineWidth=2
         fpr, tpr = self._getFprTpr()
         roc_auc = auc(fpr, tpr) # AUC = Area Under Curve, ROC = Receiver operating characteristic
 
         self.roc_auc = roc_auc
-        
-        plt.figure(figsize=(10,7))
-        plt.plot(fpr, tpr, label=f'ROC (area = {roc_auc:.2f})', linewidth=lineWidth)
-        plt.plot([0, 1], [0, 1], '--', color='red', label='Luck', linewidth=lineWidth)
-        plt.xlabel('False Positive Rate') 
-        plt.ylabel('True Positive Rate')
-        plt.title('Receiver operating characteristic (ROC) curve')
-        plt.legend()
-        plt.grid()
-        outputFilePath = path.join(outputPath, 'ROC.jpg')
+
+        fig, ax = self.createFigure()
+        ax.plot(fpr, tpr, label=f'ROC (area = {roc_auc:.2f})', linewidth=lw)
+        ax.plot([0, 1], [0, 1], '--', color='red', label='Luck', linewidth=lw)
+        ax.set_xlabel('False Positive Rate') 
+        ax.set_ylabel('True Positive Rate')
+        ax.legend()
+        ax.grid()
+        outputFilePath = path.join(outputPath, 'ROC.png')
         plt.savefig(outputFilePath)
         plt.clf()
 
@@ -157,6 +190,8 @@ class TrainResults(PPrintable):
         y_score = self.best_result['test']['y_scoreClass1']
 
         fpr, tpr, _ = roc_curve(y_true, y_score)
+        self.fpr = fpr
+        self.tpr = tpr
         return fpr, tpr
 
     def savePlots(self, outputPath):
